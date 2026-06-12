@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELEMENT TYPING — 元素記号タイピング</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#070b16; --bg1:#0c1426; --panel:rgba(18,28,52,.72);
+  --line:rgba(120,160,255,.18);
+  --cyan:#4dd6ff; --mag:#ff5fa2; --yel:#ffd43b; --grn:#51ffa8;
+  --txt:#dbe6ff; --dim:#7d8cb0;
+  --c-alkali:#ff6b81; --c-alkaline:#ffa94d; --c-transition:#ffd43b;
+  --c-post:#69db7c; --c-metalloid:#38d9a9; --c-nonmetal:#4dabf7;
+  --c-halogen:#9775fa; --c-noble:#f783ac; --c-actinoid:#e599f7;
+  font-size:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 20% -10%, #16244a 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, #2a1140 0%, transparent 55%),
+    var(--bg0);
+  color:var(--txt);
+  font-family:'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+  overflow:hidden; user-select:none;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(110,150,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110,150,255,.05) 1px, transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(ellipse at 50% 40%, #000 30%, transparent 80%);
+}
+.en{font-family:'Orbitron','Zen Kaku Gothic New',sans-serif}
+.screen{position:fixed; inset:0; display:none; flex-direction:column; align-items:center; z-index:1}
+.screen.show{display:flex}
+
+/* ===== MENU ===== */
+#menu{justify-content:flex-start; overflow-y:auto; padding:28px 16px 40px}
+.logo{ text-align:center; margin-top:8px }
+.logo h1{
+  font-family:'Orbitron'; font-weight:900; font-size:clamp(28px,4.5vw,52px); letter-spacing:.14em;
+  background:linear-gradient(95deg,var(--cyan),#8f9bff 55%,var(--mag));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 18px rgba(77,214,255,.35));
+}
+.logo .sub{color:var(--dim); letter-spacing:.5em; font-size:13px; margin-top:6px; text-indent:.5em}
+.atom{position:relative; width:74px; height:74px; margin:6px auto 2px}
+.atom .nuc{position:absolute; inset:50% auto auto 50%; width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#ffd43b 40%,#ff7b00); transform:translate(-50%,-50%);
+  box-shadow:0 0 16px #ffb700aa}
+.atom .orb{position:absolute; inset:0; border:1.5px solid rgba(120,180,255,.35); border-radius:50%;}
+.atom .orb i{position:absolute; top:-4px; left:50%; width:8px; height:8px; border-radius:50%;
+  background:var(--cyan); box-shadow:0 0 10px var(--cyan); margin-left:-4px}
+.atom .o1{transform:rotateZ(0deg) scaleY(.42); animation:none}
+.atom .o2{transform:rotateZ(60deg) scaleY(.42)}
+.atom .o3{transform:rotateZ(120deg) scaleY(.42)}
+.atom .spin{position:absolute; inset:0; animation:spin 3.4s linear infinite}
+.atom .o2 .spin{animation-duration:4.6s; animation-direction:reverse}
+.atom .o3 .spin{animation-duration:5.8s}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.menu-grid{width:min(960px,96vw); display:flex; flex-direction:column; gap:18px; margin-top:20px}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 20px;
+  backdrop-filter:blur(8px); box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.card h2{font-size:13px; letter-spacing:.3em; color:var(--cyan); margin-bottom:12px; font-weight:700}
+.opt-row{display:flex; gap:12px; flex-wrap:wrap}
+.opt{flex:1; min-width:200px; cursor:pointer; border:1.5px solid var(--line); border-radius:12px;
+  padding:14px 16px; background:rgba(10,16,34,.5); transition:.18s; position:relative}
+.opt:hover{border-color:rgba(120,180,255,.5); transform:translateY(-2px)}
+.opt.sel{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan), 0 0 24px rgba(77,214,255,.25) inset}
+.opt .t{font-weight:900; font-size:17px; margin-bottom:4px}
+.opt .d{font-size:12.5px; color:var(--dim); line-height:1.6}
+.opt .ex{display:inline-block; margin-top:8px; font-size:12px; padding:3px 10px; border-radius:99px;
+  background:rgba(77,214,255,.12); color:var(--cyan); font-family:'Orbitron','Zen Kaku Gothic New'}
+.opt.sel .badge{position:absolute; top:-9px; right:12px; font-size:10px; letter-spacing:.2em;
+  background:var(--cyan); color:#04293e; padding:2px 10px; border-radius:99px; font-weight:900}
+
+#ptable{display:grid; grid-template-columns:repeat(18,1fr); gap:3px; margin-top:4px}
+.pcell{aspect-ratio:1; border-radius:3px; display:flex; align-items:center; justify-content:center;
+  font-size:clamp(6px,.9vw,10px); font-weight:700; font-family:'Orbitron'; color:#04101e;
+  background:rgba(120,160,255,.06); transition:.25s}
+.pcell.off{color:transparent; background:rgba(120,160,255,.05)}
+.pcell.on{box-shadow:0 0 8px -1px currentColor}
+.legend{display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:12px; font-size:11px; color:var(--dim)}
+.legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:-1px}
+
+.startbar{display:flex; align-items:center; gap:18px; margin-top:4px; flex-wrap:wrap; justify-content:center}
+#startBtn{
+  font-family:'Orbitron'; font-weight:900; font-size:20px; letter-spacing:.25em; cursor:pointer;
+  color:#031c2b; background:linear-gradient(95deg,var(--cyan),#7ee0ff); border:none; border-radius:14px;
+  padding:16px 54px 16px 58px; box-shadow:0 0 30px rgba(77,214,255,.45), 0 6px 0 #1789b9;
+  transition:.15s;
+}
+#startBtn:hover{transform:translateY(-2px); box-shadow:0 0 44px rgba(77,214,255,.65), 0 8px 0 #1789b9}
+#startBtn:active{transform:translateY(3px); box-shadow:0 0 20px rgba(77,214,255,.4), 0 2px 0 #1789b9}
+.hint-note{font-size:12px; color:var(--dim); line-height:1.9; text-align:center}
+.hint-note b{color:var(--yel)}
+
+/* ===== GAME ===== */
+#game{z-index:2}
+#hud{width:100%; display:flex; align-items:center; gap:22px; padding:12px 22px;
+  background:linear-gradient(180deg, rgba(7,11,22,.95), rgba(7,11,22,.6) 80%, transparent);
+  position:relative; z-index:5}
+.hud-item{display:flex; flex-direction:column; gap:1px}
+.hud-item .lbl{font-size:9px; letter-spacing:.3em; color:var(--dim)}
+.hud-item .val{font-family:'Orbitron'; font-weight:700; font-size:20px}
+#hudScore .val{color:var(--yel); min-width:110px}
+#hudCombo .val{color:var(--mag)}
+#hudCombo .val.hot{animation:pop .18s}
+@keyframes pop{50%{transform:scale(1.35)}}
+#hudLives .val{color:#ff5f6e; letter-spacing:3px; font-size:18px}
+#hudProg{flex:1}
+#progBar{height:5px; border-radius:99px; background:rgba(120,160,255,.15); overflow:hidden; margin-top:5px}
+#progFill{height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--cyan),var(--mag)); transition:width .3s}
+#quitBtn,#muteBtn{background:rgba(20,30,56,.8); color:var(--dim); border:1px solid var(--line);
+  border-radius:9px; padding:7px 14px; cursor:pointer; font-size:12px; font-family:inherit}
+#quitBtn:hover,#muteBtn:hover{color:var(--txt); border-color:rgba(140,180,255,.5)}
+
+#field{position:relative; flex:1; width:100%; overflow:hidden}
+#floorline{position:absolute; left:0; right:0; bottom:0; height:3px;
+  background:linear-gradient(90deg,transparent,#ff3b5c,#ff3b5c,transparent);
+  box-shadow:0 0 18px #ff3b5c; opacity:.8}
+#floorline::before{content:''; position:absolute; inset:auto 0 0 0; height:46px;
+  background:linear-gradient(0deg, rgba(255,59,92,.12), transparent)}
+
+.tile{position:absolute; width:128px; border-radius:13px; padding:9px 10px 10px;
+  background:linear-gradient(160deg, rgba(22,34,66,.95), rgba(11,18,38,.95));
+  border:1.5px solid var(--cat, var(--line));
+  box-shadow:0 0 14px -4px var(--cat,#4dabf7), 0 8px 22px rgba(0,0,0,.5);
+  text-align:center; will-change:transform; z-index:1;
+}
+.tile.goro{width:212px}
+.tile .tnum{position:absolute; top:6px; left:9px; font-family:'Orbitron'; font-size:11px; color:var(--dim)}
+.tile .tcat{position:absolute; top:7px; right:9px; width:8px; height:8px; border-radius:50%; background:var(--cat)}
+.tile .tmain{font-family:'Orbitron','Zen Kaku Gothic New'; font-weight:900; font-size:36px; line-height:1.25; margin-top:10px;
+  color:#fff; text-shadow:0 0 14px var(--cat)}
+.tile .tmain.jp{font-family:'Zen Kaku Gothic New','Orbitron'; font-size:25px; margin-top:14px; letter-spacing:.04em}
+.tile .tmain.q{color:var(--dim); text-shadow:none}
+.tile .tsub{font-size:12px; color:var(--dim); margin-top:3px; min-height:17px; letter-spacing:.05em}
+.tile .tsub b{color:var(--grn); font-weight:700}
+.tile .tsyms{display:flex; justify-content:center; gap:4px; margin-top:12px; flex-wrap:wrap}
+.tile .tsyms span{font-family:'Orbitron'; font-weight:700; font-size:13px; padding:2px 7px; border-radius:5px;
+  background:rgba(255,255,255,.07); border:1px solid var(--cat); color:#fff}
+.tile .tgoro{font-weight:900; font-size:21px; margin-top:7px; letter-spacing:.06em}
+.tile .tkana{font-size:12px; color:var(--cyan); margin-top:2px}
+.tile.active{border-width:2px; z-index:2;
+  box-shadow:0 0 0 1px var(--cat), 0 0 30px -2px var(--cat), 0 10px 28px rgba(0,0,0,.55)}
+.tile.active::after{content:'▼ TARGET'; position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+  font-family:'Orbitron'; font-size:9px; letter-spacing:.25em; color:var(--cyan); white-space:nowrap;
+  animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.tile.shake{animation:shake .22s}
+@keyframes shake{20%{transform:translate(var(--tx),var(--ty)) translateX(-7px)}
+  60%{transform:translate(var(--tx),var(--ty)) translateX(7px)}
+  100%{transform:translate(var(--tx),var(--ty))}}
+
+.boom{position:absolute; width:10px; height:10px; border-radius:50%; pointer-events:none; z-index:9;
+  background:var(--c,#ffd43b); box-shadow:0 0 12px var(--c,#ffd43b);
+  animation:boom .62s ease-out forwards}
+@keyframes boom{to{transform:translate(var(--dx),var(--dy)) scale(.1); opacity:0}}
+.ring{position:absolute; width:30px; height:30px; border-radius:50%; pointer-events:none; z-index:9;
+  border:3px solid var(--c,#fff); transform:translate(-50%,-50%); animation:ring .5s ease-out forwards}
+@keyframes ring{to{width:170px; height:170px; opacity:0; border-width:1px}}
+.scorefx{position:absolute; pointer-events:none; z-index:10; font-family:'Orbitron'; font-weight:900;
+  color:var(--yel); text-shadow:0 0 12px rgba(255,212,59,.7); animation:rise .8s ease-out forwards; font-size:20px}
+@keyframes rise{to{transform:translateY(-56px); opacity:0}}
+
+#console{width:100%; padding:14px 18px 20px; z-index:5;
+  background:linear-gradient(0deg, rgba(7,11,22,.97) 60%, transparent)}
+#consBox{max-width:860px; margin:0 auto; background:var(--panel); border:1px solid var(--line);
+  border-radius:14px; padding:13px 22px 15px; backdrop-filter:blur(8px); text-align:center;
+  box-shadow:0 -6px 30px rgba(0,0,0,.4)}
+#consQ{font-size:14px; color:var(--dim); min-height:21px}
+#consQ b{color:var(--txt); font-size:16px}
+#consType{font-family:'Orbitron',monospace; font-size:27px; font-weight:700; margin-top:4px; min-height:36px;
+  letter-spacing:.1em}
+#consType .ok{color:var(--grn); text-shadow:0 0 10px rgba(81,255,168,.5)}
+#consType .rest{color:#3d4c72}
+#consType .caret{display:inline-block; width:3px; height:24px; background:var(--cyan); vertical-align:-3px;
+  margin:0 2px; animation:blink .9s steps(2) infinite}
+#consType .qq{color:#3d4c72; letter-spacing:.12em; font-size:14px; font-family:'Zen Kaku Gothic New',sans-serif}
+#consHint{font-size:12px; color:var(--yel); min-height:17px; margin-top:2px}
+
+/* ===== RESULT ===== */
+#result{justify-content:center; background:rgba(5,8,16,.7); backdrop-filter:blur(6px); z-index:10}
+#resCard{width:min(640px,94vw); text-align:center; padding:34px 34px 30px}
+#resRank{font-family:'Orbitron'; font-weight:900; font-size:88px; line-height:1;
+  background:linear-gradient(180deg,#fff,var(--yel)); -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 24px rgba(255,212,59,.5))}
+#resTitle{font-size:20px; font-weight:900; letter-spacing:.2em; margin-top:6px}
+#resTitle.fail{color:var(--mag)}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:24px 0 8px}
+.stat{background:rgba(10,16,34,.6); border:1px solid var(--line); border-radius:11px; padding:12px 6px}
+.stat .l{font-size:10px; letter-spacing:.22em; color:var(--dim)}
+.stat .v{font-family:'Orbitron'; font-weight:700; font-size:22px; margin-top:4px; color:var(--cyan)}
+#reviewWrap{margin-top:16px; text-align:left}
+#reviewWrap h3{font-size:12px; letter-spacing:.25em; color:var(--mag); margin-bottom:8px}
+#reviewList{display:flex; flex-wrap:wrap; gap:7px; max-height:120px; overflow-y:auto}
+.rchip{font-size:12.5px; background:rgba(255,95,162,.1); border:1px solid rgba(255,95,162,.4);
+  border-radius:8px; padding:4px 10px}
+.rchip b{font-family:'Orbitron'; color:#fff; margin-right:6px}
+.resbtns{display:flex; gap:12px; justify-content:center; margin-top:26px}
+.resbtns button{cursor:pointer; font-family:inherit; font-weight:900; font-size:15px; border-radius:11px;
+  padding:13px 30px; border:1.5px solid var(--line); background:rgba(16,26,50,.8); color:var(--txt); transition:.15s}
+.resbtns button:hover{transform:translateY(-2px); border-color:var(--cyan)}
+.resbtns button.primary{background:linear-gradient(95deg,var(--cyan),#7ee0ff); color:#031c2b; border:none;
+  box-shadow:0 0 22px rgba(77,214,255,.4)}
+
+#countdown{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:20;
+  font-family:'Orbitron'; font-weight:900; font-size:110px; color:#fff; pointer-events:none;
+  text-shadow:0 0 40px var(--cyan)}
+@media (max-width:680px){
+  .tile{width:106px} .tile .tmain{font-size:28px} .tile.goro{width:178px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  #hud{gap:12px; padding:10px 12px; flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ MENU ============ -->
+<div id="menu" class="screen show">
+  <div class="logo">
+    <div class="atom">
+      <div class="orb o1"><div class="spin"><i></i></div></div>
+      <div class="orb o2"><div class="spin"><i></i></div></div>
+      <div class="orb o3"><div class="spin"><i></i></div></div>
+      <div class="nuc"></div>
+    </div>
+    <h1>ELEMENT TYPING</h1>
+    <div class="sub">元素記号タイピング</div>
+  </div>
+
+  <div class="menu-grid">
+    <div class="card">
+      <h2>MODE — モードを選ぶ</h2>
+      <div class="opt-row" id="modeRow">
+        <div class="opt sel" data-mode="symbol">
+          <div class="badge">SELECTED</div>
+          <div class="t">🧪 記号モード</div>
+          <div class="d">元素名を見て、元素記号をタイプ。<br>記号を覚える基本モード。</div>
+          <span class="ex">水素 → h</span>
+        </div>
+        <div class="opt" data-mode="kana">
+          <div class="t">🔤 読みモード</div>
+          <div class="d">元素記号を見て、読みをローマ字でタイプ。<br>記号→名前の逆方向で定着！</div>
+          <span class="ex">H → suiso</span>
+        </div>
+        <div class="opt" data-mode="goro">
+          <div class="t">📜 語呂合わせモード</div>
+          <div class="d">「水兵リーベ僕の船…」をタイプして<br>周期表の順番を体で覚える。</div>
+          <span class="ex">水兵 → suihei</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ORDER — 出題順を選ぶ</h2>
+      <div class="opt-row" id="orderRow">
+        <div class="opt sel" data-order="seq">
+          <div class="badge">SELECTED</div>
+          <div class="t">📋 周期表順</div>
+          <div class="d">原子番号の順番どおりに登場。順番ごと覚えたい人向け。</div>
+        </div>
+        <div class="opt" data-order="random">
+          <div class="t">🎲 ランダム</div>
+          <div class="d">順番をシャッフルして出題。本当に覚えたかの腕試しに！</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>LEVEL — レベルを選ぶ</h2>
+      <div class="opt-row" id="levelRow">
+        <div class="opt sel" data-level="jhs">
+          <div class="badge">SELECTED</div>
+          <div class="t">🏫 中学レベル</div>
+          <div class="d">原子番号 1〜20（H〜Ca）。テストに出る基本の20元素。</div>
+        </div>
+        <div class="opt" data-level="hs">
+          <div class="t">🎓 高校レベル</div>
+          <div class="d">原子番号 1〜36（H〜Kr）＋ Ag・Sn・I・Ba・Pt・Au・Hg・Pb・U の重要元素。</div>
+        </div>
+      </div>
+      <div id="ptable"></div>
+      <div class="legend">
+        <span><i style="background:var(--c-alkali)"></i>アルカリ金属</span>
+        <span><i style="background:var(--c-alkaline)"></i>アルカリ土類</span>
+        <span><i style="background:var(--c-transition)"></i>遷移金属</span>
+        <span><i style="background:var(--c-post)"></i>典型金属</span>
+        <span><i style="background:var(--c-metalloid)"></i>半金属</span>
+        <span><i style="background:var(--c-nonmetal)"></i>非金属</span>
+        <span><i style="background:var(--c-halogen)"></i>ハロゲン</span>
+        <span><i style="background:var(--c-noble)"></i>貴ガス</span>
+        <span><i style="background:var(--c-actinoid)"></i>アクチノイド</span>
+      </div>
+    </div>
+
+    <div class="startbar">
+      <button id="startBtn">▶ START</button>
+    </div>
+    <p class="hint-note">
+      落ちてくる元素の答えを打ち込んで <b>Enterで確定</b>して撃ち落とそう。<br>
+      打ち間違いは <b>Backspaceで修正OK</b>（タイプミスは失敗にならないよ）。<br>
+      間違った答えで確定すると<b>ヒントが表示</b>されてコンボがリセット。下のラインに着くとライフが減るよ。<br>
+      ⌨️ <b>IMEはOFF（半角英数）</b>でプレイしてね ／ ESCで中断
+    </p>
+  </div>
+</div>
+
+<!-- ============ GAME ============ -->
+<div id="game" class="screen">
+  <div id="hud">
+    <div class="hud-item" id="hudScore"><span class="lbl">SCORE</span><span class="val en" id="scoreV">0</span></div>
+    <div class="hud-item" id="hudCombo"><span class="lbl">COMBO</span><span class="val en" id="comboV">0</span></div>
+    <div class="hud-item" id="hudLives"><span class="lbl">LIFE</span><span class="val" id="livesV">♥♥♥♥</span></div>
+    <div class="hud-item" id="hudProg"><span class="lbl" id="progLbl">PROGRESS 0/20</span>
+      <div id="progBar"><div id="progFill"></div></div></div>
+    <button id="muteBtn">🔊 音</button>
+    <button id="quitBtn">ESC やめる</button>
+  </div>
+  <div id="field"><div id="floorline"></div></div>
+  <div id="console">
+    <div id="consBox">
+      <div id="consQ">READY...</div>
+      <div id="consType"><span class="caret"></span></div>
+      <div id="consHint"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RESULT ============ -->
+<div id="result" class="screen">
+  <div class="card" id="resCard">
+    <div id="resRank">S</div>
+    <div id="resTitle">MISSION COMPLETE!</div>
+    <div class="stats">
+      <div class="stat"><div class="l">SCORE</div><div class="v" id="rScore">0</div></div>
+      <div class="stat"><div class="l">正答率</div><div class="v" id="rAcc">100%</div></div>
+      <div class="stat"><div class="l">MAX COMBO</div><div class="v" id="rCombo">0</div></div>
+      <div class="stat"><div class="l">TIME</div><div class="v" id="rTime">0:00</div></div>
+    </div>
+    <div id="reviewWrap">
+      <h3>📝 ニガテな元素 — 復習しよう</h3>
+      <div id="reviewList"></div>
+    </div>
+    <div class="resbtns">
+      <button class="primary" id="retryBtn">もう一度</button>
+      <button id="menuBtn">モード選択へ</button>
+    </div>
+    <p style="margin-top:14px;font-size:11px;color:var(--dim)">⌨️ Enter: もう一度 ／ Esc: モード選択へ</p>
+  </div>
+</div>
+
+<div id="countdown"></div>
+
+<script>
+'use strict';
+/* ================= DATA ================= */
+// cat: alkali alkaline transition post metalloid nonmetal halogen noble actinoid
+const ELEMENTS=[
+ {n:1,  s:'H', name:'水素',        kana:'すいそ',        cat:'nonmetal',  g:1, p:1},
+ {n:2,  s:'He',name:'ヘリウム',    kana:'へりうむ',      cat:'noble',     g:18,p:1},
+ {n:3,  s:'Li',name:'リチウム',    kana:'りちうむ',      cat:'alkali',    g:1, p:2},
+ {n:4,  s:'Be',name:'ベリリウム',  kana:'べりりうむ',    cat:'alkaline',  g:2, p:2},
+ {n:5,  s:'B', name:'ホウ素',      kana:'ほうそ',        cat:'metalloid', g:13,p:2},
+ {n:6,  s:'C', name:'炭素',        kana:'たんそ',        cat:'nonmetal',  g:14,p:2},
+ {n:7,  s:'N', name:'窒素',        kana:'ちっそ',        cat:'nonmetal',  g:15,p:2},
+ {n:8,  s:'O', name:'酸素',        kana:'さんそ',        cat:'nonmetal',  g:16,p:2},
+ {n:9,  s:'F', name:'フッ素',      kana:'ふっそ',        cat:'halogen',   g:17,p:2},
+ {n:10, s:'Ne',name:'ネオン',      kana:'ねおん',        cat:'noble',     g:18,p:2},
+ {n:11, s:'Na',name:'ナトリウム',  kana:'なとりうむ',    cat:'alkali',    g:1, p:3},
+ {n:12, s:'Mg',name:'マグネシウム',kana:'まぐねしうむ',  cat:'alkaline',  g:2, p:3},
+ {n:13, s:'Al',name:'アルミニウム',kana:'あるみにうむ',  cat:'post',      g:13,p:3},
+ {n:14, s:'Si',name:'ケイ素',      kana:'けいそ',        cat:'metalloid', g:14,p:3},
+ {n:15, s:'P', name:'リン',        kana:'りん',          cat:'nonmetal',  g:15,p:3},
+ {n:16, s:'S', name:'硫黄',        kana:'いおう',        cat:'nonmetal',  g:16,p:3},
+ {n:17, s:'Cl',name:'塩素',        kana:'えんそ',        cat:'halogen',   g:17,p:3},
+ {n:18, s:'Ar',name:'アルゴン',    kana:'あるごん',      cat:'noble',     g:18,p:3},
+ {n:19, s:'K', name:'カリウム',    kana:'かりうむ',      cat:'alkali',    g:1, p:4},
+ {n:20, s:'Ca',name:'カルシウム',  kana:'かるしうむ',    cat:'alkaline',  g:2, p:4},
+ {n:21, s:'Sc',name:'スカンジウム',kana:'すかんじうむ',  cat:'transition',g:3, p:4},
+ {n:22, s:'Ti',name:'チタン',      kana:'ちたん',        cat:'transition',g:4, p:4},
+ {n:23, s:'V', name:'バナジウム',  kana:'ばなじうむ',    cat:'transition',g:5, p:4},
+ {n:24, s:'Cr',name:'クロム',      kana:'くろむ',        cat:'transition',g:6, p:4},
+ {n:25, s:'Mn',name:'マンガン',    kana:'まんがん',      cat:'transition',g:7, p:4},
+ {n:26, s:'Fe',name:'鉄',          kana:'てつ',          cat:'transition',g:8, p:4},
+ {n:27, s:'Co',name:'コバルト',    kana:'こばると',      cat:'transition',g:9, p:4},
+ {n:28, s:'Ni',name:'ニッケル',    kana:'にっける',      cat:'transition',g:10,p:4},
+ {n:29, s:'Cu',name:'銅',          kana:'どう',          cat:'transition',g:11,p:4},
+ {n:30, s:'Zn',name:'亜鉛',        kana:'あえん',        cat:'transition',g:12,p:4},
+ {n:31, s:'Ga',name:'ガリウム',    kana:'がりうむ',      cat:'post',      g:13,p:4},
+ {n:32, s:'Ge',name:'ゲルマニウム',kana:'げるまにうむ',  cat:'metalloid', g:14,p:4},
+ {n:33, s:'As',name:'ヒ素',        kana:'ひそ',          cat:'metalloid', g:15,p:4},
+ {n:34, s:'Se',name:'セレン',      kana:'せれん',        cat:'nonmetal',  g:16,p:4},
+ {n:35, s:'Br',name:'臭素',        kana:'しゅうそ',      cat:'halogen',   g:17,p:4},
+ {n:36, s:'Kr',name:'クリプトン',  kana:'くりぷとん',    cat:'noble',     g:18,p:4},
+ {n:47, s:'Ag',name:'銀',          kana:'ぎん',          cat:'transition',g:11,p:5},
+ {n:50, s:'Sn',name:'スズ',        kana:'すず',          cat:'post',      g:14,p:5},
+ {n:53, s:'I', name:'ヨウ素',      kana:'ようそ',        cat:'halogen',   g:17,p:5},
+ {n:56, s:'Ba',name:'バリウム',    kana:'ばりうむ',      cat:'alkaline',  g:2, p:6},
+ {n:78, s:'Pt',name:'白金',        kana:'はっきん',      cat:'transition',g:10,p:6},
+ {n:79, s:'Au',name:'金',          kana:'きん',          cat:'transition',g:11,p:6},
+ {n:80, s:'Hg',name:'水銀',        kana:'すいぎん',      cat:'transition',g:12,p:6},
+ {n:82, s:'Pb',name:'鉛',          kana:'なまり',        cat:'post',      g:14,p:6},
+ {n:92, s:'U', name:'ウラン',      kana:'うらん',        cat:'actinoid',  g:6, p:8},
+];
+const byNum=n=>ELEMENTS.find(e=>e.n===n);
+
+// 語呂合わせ（水兵リーベ + 第4周期）
+const GORO_JHS=[
+ {text:'水兵',     kana:'すいへい',   nums:[1,2]},
+ {text:'リーベ',   kana:'りーべ',     nums:[3,4]},
+ {text:'僕',       kana:'ぼく',       nums:[5,6]},
+ {text:'の',       kana:'の',         nums:[7,8]},
+ {text:'船',       kana:'ふね',       nums:[9,10]},
+ {text:'七曲がり', kana:'ななまがり', nums:[11,12,13]},
+ {text:'シップス', kana:'しっぷす',   nums:[14,15,16]},
+ {text:'クラークか',kana:'くらーくか',nums:[17,18,19,20]},
+];
+const GORO_HS=[...GORO_JHS,
+ {text:'スコッチ',   kana:'すこっち',   nums:[21,22]},
+ {text:'暴露マン',   kana:'ばくろまん', nums:[23,24,25]},
+ {text:'鉄子に',     kana:'てつこに',   nums:[26,27,28]},
+ {text:'銅・亜鉛',   kana:'どうあえん', nums:[29,30]},
+ {text:'ガリ・ゲル', kana:'がりげる',   nums:[31,32]},
+ {text:'斡旋',       kana:'あっせん',   nums:[33,34]},
+ {text:'ブローカー', kana:'ぶろーかー', nums:[35,36]},
+];
+
+/* ================= ROMAJI ENGINE ================= */
+const KMAP={
+ 'あ':['a'],'い':['i','yi'],'う':['u','wu','whu'],'え':['e'],'お':['o'],
+ 'か':['ka','ca'],'き':['ki'],'く':['ku','cu','qu'],'け':['ke'],'こ':['ko','co'],
+ 'さ':['sa'],'し':['shi','si','ci'],'す':['su'],'せ':['se','ce'],'そ':['so'],
+ 'た':['ta'],'ち':['chi','ti'],'つ':['tsu','tu'],'て':['te'],'と':['to'],
+ 'な':['na'],'に':['ni'],'ぬ':['nu'],'ね':['ne'],'の':['no'],
+ 'は':['ha'],'ひ':['hi'],'ふ':['fu','hu'],'へ':['he'],'ほ':['ho'],
+ 'ま':['ma'],'み':['mi'],'む':['mu'],'め':['me'],'も':['mo'],
+ 'や':['ya'],'ゆ':['yu'],'よ':['yo'],
+ 'ら':['ra'],'り':['ri'],'る':['ru'],'れ':['re'],'ろ':['ro'],
+ 'わ':['wa'],'を':['wo'],
+ 'が':['ga'],'ぎ':['gi'],'ぐ':['gu'],'げ':['ge'],'ご':['go'],
+ 'ざ':['za'],'じ':['ji','zi'],'ず':['zu'],'ぜ':['ze'],'ぞ':['zo'],
+ 'だ':['da'],'ぢ':['di'],'づ':['du'],'で':['de'],'ど':['do'],
+ 'ば':['ba'],'び':['bi'],'ぶ':['bu'],'べ':['be'],'ぼ':['bo'],
+ 'ぱ':['pa'],'ぴ':['pi'],'ぷ':['pu'],'ぺ':['pe'],'ぽ':['po'],
+ 'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],
+ 'しゃ':['sha','sya'],'しゅ':['shu','syu'],'しょ':['sho','syo'],
+ 'ちゃ':['cha','tya'],'ちゅ':['chu','tyu'],'ちょ':['cho','tyo'],
+ 'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
+ 'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],
+ 'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
+ 'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],
+ 'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
+ 'じゃ':['ja','zya','jya'],'じゅ':['ju','zyu','jyu'],'じょ':['jo','zyo','jyo'],
+ 'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
+ 'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],
+ 'ふぁ':['fa'],'ふぃ':['fi'],'ふぇ':['fe'],'ふぉ':['fo'],
+ 'ぁ':['la','xa'],'ぃ':['li','xi'],'ぅ':['lu','xu'],'ぇ':['le','xe'],'ぉ':['lo','xo'],
+ 'ゃ':['lya','xya'],'ゅ':['lyu','xyu'],'ょ':['lyo','xyo'],
+ 'ー':['-'],
+};
+const SMALL='ゃゅょぁぃぅぇぉ';
+const VOWELS='aiueo';
+
+function tokenize(kana){
+  const toks=[]; let i=0;
+  while(i<kana.length){
+    const two=kana.slice(i,i+2);
+    if(two.length===2 && SMALL.includes(two[1]) && KMAP[two]){toks.push(two);i+=2;}
+    else{toks.push(kana[i]);i++;}
+  }
+  return toks;
+}
+function buildAlts(toks){
+  return toks.map((t,i)=>{
+    if(t==='っ'){
+      const alts=[];
+      const nx=toks[i+1];
+      if(nx && KMAP[nx]){
+        const seen=new Set();
+        for(const a of KMAP[nx]){
+          const c=a[0];
+          if(!VOWELS.includes(c)&&c!=='n'&&!seen.has(c)){seen.add(c);alts.push(c);}
+        }
+      }
+      alts.push('xtu','ltu','ltsu');
+      return alts;
+    }
+    if(t==='ん'){
+      const alts=['nn'];
+      const nx=toks[i+1];
+      if(nx && KMAP[nx] && KMAP[nx].every(a=>{const c=a[0];return !VOWELS.includes(c)&&c!=='n'&&c!=='y';}))
+        alts.unshift('n');   // 「n」省略形を案内（次が子音のときのみ）
+      alts.push('xn');
+      return alts;
+    }
+    return KMAP[t]||[t];
+  });
+}
+class Target{
+  // kindly accepts romaji with common variants (shi/si, fu/hu, n/nn, っ=double consonant ...)
+  constructor(str, isKana){
+    if(isKana){ this.tokens=tokenize(str); this.alts=buildAlts(this.tokens); }
+    else{ this.tokens=str.toLowerCase().split(''); this.alts=this.tokens.map(c=>[c]); }
+    this.states=[{t:0,a:-1,p:0}];
+    this.typed=''; this.done=false;
+  }
+  accept(ch){
+    const next=[]; const seen=new Set();
+    const push=(s)=>{const k=s.t+'/'+s.a+'/'+s.p; if(!seen.has(k)){seen.add(k);next.push(s);}};
+    for(const s of this.states){
+      if(s.t>=this.tokens.length) continue;
+      if(s.a===-1){
+        const alts=this.alts[s.t];
+        for(let ai=0;ai<alts.length;ai++){
+          if(alts[ai][0]===ch){
+            if(alts[ai].length===1) push({t:s.t+1,a:-1,p:0});
+            else push({t:s.t,a:ai,p:1});
+          }
+        }
+      }else{
+        const alt=this.alts[s.t][s.a];
+        if(alt[s.p]===ch){
+          if(s.p+1===alt.length) push({t:s.t+1,a:-1,p:0});
+          else push({t:s.t,a:s.a,p:s.p+1});
+        }
+      }
+    }
+    if(!next.length) return false;
+    this.states=next; this.typed+=ch;
+    this.done=next.some(s=>s.t>=this.tokens.length);
+    return true;
+  }
+  guide(){
+    // 最短の残り入力例
+    let best=this.states[0];
+    for(const s of this.states) if(s.t>best.t||(s.t===best.t&&s.p>best.p)) best=s;
+    let r='',t=best.t;
+    if(best.a>=0){ r+=this.alts[best.t][best.a].slice(best.p); t=best.t+1; }
+    for(;t<this.tokens.length;t++) r+=this.alts[t][0];
+    return r;
+  }
+}
+
+/* ================= AUDIO ================= */
+let AC=null, muted=false;
+function ac(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); return AC; }
+function tone(f,dur,type='square',vol=.06,slide=0){
+  if(muted) return;
+  try{
+    const c=ac(),o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.value=f;
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(40,f+slide),c.currentTime+dur);
+    g.gain.value=vol; g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
+    o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur);
+  }catch(e){}
+}
+const sndType =()=>tone(880,.04,'square',.035);
+const sndMiss =()=>tone(170,.13,'sawtooth',.07);
+const sndKill =()=>{tone(620,.1,'square',.06,600);setTimeout(()=>tone(990,.14,'square',.05,500),50);};
+const sndFall =()=>tone(330,.3,'sawtooth',.08,-250);
+const sndStart=()=>{tone(520,.09);setTimeout(()=>tone(660,.09),100);setTimeout(()=>tone(880,.16),200);};
+
+/* ================= GAME STATE ================= */
+const $=id=>document.getElementById(id);
+const fieldEl=$('field');
+let mode='symbol', level='jhs', order='seq';
+let G=null;   // game state
+
+function catColor(cat){return getComputedStyle(document.documentElement).getPropertyValue('--c-'+cat).trim();}
+
+/* ---- menu ---- */
+function setupOptRow(rowId, attr, cb){
+  $(rowId).addEventListener('click',e=>{
+    const opt=e.target.closest('.opt'); if(!opt) return;
+    [...$(rowId).children].forEach(o=>{o.classList.toggle('sel',o===opt);
+      const b=o.querySelector('.badge'); if(b&&o!==opt) b.remove();});
+    if(!opt.querySelector('.badge')){const b=document.createElement('div');b.className='badge';b.textContent='SELECTED';opt.prepend(b);}
+    cb(opt.dataset[attr]);
+    tone(700,.05,'square',.03);
+  });
+}
+setupOptRow('modeRow','mode',v=>{mode=v;});
+setupOptRow('levelRow','level',v=>{level=v;renderPtable();});
+setupOptRow('orderRow','order',v=>{order=v;});
+
+function levelElements(){
+  return level==='jhs' ? ELEMENTS.filter(e=>e.n<=20) : ELEMENTS;
+}
+function renderPtable(){
+  const pt=$('ptable'); pt.innerHTML='';
+  const incl=new Set(levelElements().map(e=>e.n));
+  const cellMap={};
+  for(const e of ELEMENTS) cellMap[e.p+'-'+e.g]=e;
+  for(let p=1;p<=8;p++) for(let g=1;g<=18;g++){
+    const d=document.createElement('div'); d.className='pcell off';
+    const e=cellMap[p+'-'+g];
+    if(e){
+      d.textContent=e.s;
+      if(incl.has(e.n)){d.className='pcell on'; d.style.background=catColor(e.cat); d.style.color='#04101e';}
+      else{d.className='pcell'; d.style.color='rgba(150,180,255,.35)';}
+    }else if(p===1&&g>1&&g<18){ d.style.background='transparent'; }
+    pt.appendChild(d);
+  }
+}
+renderPtable();
+
+/* ---- queue ---- */
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function buildQueue(){
+  let q;
+  if(mode==='goro'){
+    const list=level==='jhs'?GORO_JHS:GORO_HS;
+    q=list.map(g=>({kind:'goro',goro:g,els:g.nums.map(byNum)}));
+  }else{
+    q=levelElements().map(e=>({kind:mode,el:e}));
+  }
+  return order==='random'?shuffle(q):q;
+}
+
+/* ---- tiles ---- */
+function makeTile(q,idx){
+  const div=document.createElement('div');
+  div.className='tile'+(q.kind==='goro'?' goro':'');
+  let cat,html;
+  if(q.kind==='goro'){
+    cat=q.els[0].cat;
+    html=`<span class="tnum">#${q.goro.nums[0]}〜</span><span class="tcat"></span>
+      <div class="tsyms">${q.els.map(e=>`<span>${e.s}</span>`).join('')}</div>
+      <div class="tgoro">${q.goro.text}</div>
+      <div class="tkana">${q.goro.kana}</div>`;
+  }else if(q.kind==='symbol'){
+    cat=q.el.cat;
+    html=`<span class="tnum">${q.el.n}</span><span class="tcat"></span>
+      <div class="tmain jp">${q.el.name}</div>
+      <div class="tsub">記号は？</div>`;
+  }else{ // kana
+    cat=q.el.cat;
+    html=`<span class="tnum">${q.el.n}</span><span class="tcat"></span>
+      <div class="tmain">${q.el.s}</div>
+      <div class="tsub">読みは？</div>`;
+  }
+  div.style.setProperty('--cat',catColor(cat));
+  div.innerHTML=html;
+  // 横位置：4レーン+ゆらぎで重なりにくく
+  const fw=fieldEl.clientWidth, tw=q.kind==='goro'?220:136;
+  const lanes=Math.max(2,Math.floor((fw-40)/(tw+18)));
+  const lane=idx%lanes;
+  const x=14+lane*((fw-tw-28)/Math.max(1,lanes-1))+(Math.random()*26-13);
+  const t={q,div,x:Math.max(8,Math.min(fw-tw-8,x)),y:-150,revealed:false,missed:false,
+    ans:q.kind==='symbol'?q.el.s.toLowerCase():(q.kind==='kana'?q.el.kana:q.goro.kana),
+    isKana:q.kind!=='symbol'};
+  div.style.transform=`translate(${t.x}px,${t.y}px)`;
+  div.style.setProperty('--tx',t.x+'px');
+  fieldEl.appendChild(div);
+  return t;
+}
+function reveal(t){
+  if(t.revealed) return; t.revealed=true; t.missed=true;
+  const q=t.q;
+  if(q.kind==='symbol'){
+    const sub=t.div.querySelector('.tsub'); sub.innerHTML=`答え: <b>${q.el.s}</b>`;
+  }else if(q.kind==='kana'){
+    const sub=t.div.querySelector('.tsub'); sub.innerHTML=`<b>${q.el.name}</b>（${q.el.kana}）`;
+  }
+  updateConsole();
+}
+
+/* ---- fx ---- */
+function explode(x,y,color,score){
+  for(let i=0;i<16;i++){
+    const p=document.createElement('div'); p.className='boom';
+    const ang=Math.random()*Math.PI*2, d=40+Math.random()*90;
+    p.style.left=x+'px'; p.style.top=y+'px';
+    p.style.setProperty('--c',color);
+    p.style.setProperty('--dx',Math.cos(ang)*d+'px');
+    p.style.setProperty('--dy',Math.sin(ang)*d+'px');
+    p.style.width=p.style.height=(4+Math.random()*8)+'px';
+    fieldEl.appendChild(p); setTimeout(()=>p.remove(),650);
+  }
+  const r=document.createElement('div'); r.className='ring';
+  r.style.left=x+'px'; r.style.top=y+'px'; r.style.setProperty('--c',color);
+  fieldEl.appendChild(r); setTimeout(()=>r.remove(),520);
+  if(score!=null){
+    const s=document.createElement('div'); s.className='scorefx en'; s.textContent='+'+score;
+    s.style.left=(x-20)+'px'; s.style.top=(y-30)+'px';
+    fieldEl.appendChild(s); setTimeout(()=>s.remove(),820);
+  }
+}
+
+/* ---- console ---- */
+function modeQuestion(t){
+  const q=t.q;
+  if(q.kind==='symbol') return `「<b>${q.el.name}</b>」の元素記号をタイプ！`;
+  if(q.kind==='kana')   return `「<b>${q.el.s}</b>」の読みをローマ字でタイプ！`;
+  return `<b>${q.goro.text}</b>（${q.goro.kana}）をタイプ！ → ${q.els.map(e=>e.s).join('・')}`;
+}
+function checkAnswer(t,buf){
+  if(!t.isKana) return buf===t.ans;
+  const tg=new Target(t.ans,true);
+  for(const c of buf){ if(!tg.accept(c)) return false; }
+  return tg.done;
+}
+function guideFor(t){
+  if(!t.isKana) return t.ans.toUpperCase();
+  return new Target(t.ans,true).guide();
+}
+function updateConsole(){
+  const t=G&&G.alive[0];
+  if(!t){ $('consQ').textContent='WAVE CLEAR...'; $('consType').innerHTML='<span class="caret"></span>'; $('consHint').textContent=''; return; }
+  $('consQ').innerHTML=modeQuestion(t);
+  $('consType').innerHTML = G.buf
+    ? `<span class="ok">${G.buf}</span><span class="caret"></span>`
+    : `<span class="caret"></span><span class="qq">タイプして Enter で確定</span>`;
+  let hint='';
+  if(t.q.kind==='goro') hint=`入力例: ${guideFor(t)}`;
+  else if(t.revealed) hint = t.q.kind==='symbol'
+    ? `ヒント: ${t.q.el.s}（${t.q.el.name}）`
+    : `ヒント: ${t.q.el.kana} → ${guideFor(t)}`;
+  $('consHint').textContent=hint;
+}
+
+/* ---- HUD ---- */
+function updateHUD(){
+  $('scoreV').textContent=G.score;
+  $('comboV').textContent=G.combo;
+  $('livesV').textContent='♥'.repeat(G.lives)+'♡'.repeat(Math.max(0,G.maxLives-G.lives));
+  $('progLbl').textContent=`PROGRESS ${G.cleared}/${G.queue.length}`;
+  $('progFill').style.width=(G.cleared/G.queue.length*100)+'%';
+}
+
+/* ---- game flow ---- */
+function startGame(){
+  fieldEl.querySelectorAll('.tile,.boom,.ring,.scorefx').forEach(e=>e.remove());
+  G={queue:buildQueue(),idx:0,alive:[],score:0,combo:0,maxCombo:0,
+     lives:4,maxLives:4,cleared:0,ok:0,ng:0,buf:'',review:new Map(),
+     lastSpawn:-9999,time:0,over:false,raf:0,last:performance.now()};
+  showScreen('game'); updateHUD(); updateConsole();
+  // countdown
+  const cd=$('countdown'); let c=3; cd.style.display='flex'; cd.textContent=c;
+  tone(660,.1);
+  const iv=setInterval(()=>{
+    c--;
+    if(c>0){cd.textContent=c;tone(660,.1);}
+    else{
+      clearInterval(iv); cd.textContent='GO!'; sndStart();
+      setTimeout(()=>{cd.style.display='none';},500);
+      G.last=performance.now(); G.raf=requestAnimationFrame(loop);
+    }
+  },800);
+}
+function spawnParams(){
+  const base={symbol:{dur:12000,iv:2300},kana:{dur:14000,iv:3300},goro:{dur:17000,iv:4000}}[mode];
+  const accel=Math.max(.55,1-G.idx*.012);
+  return {dur:base.dur*accel, iv:base.iv*Math.max(.6,1-G.idx*.008)};
+}
+function loop(now){
+  if(G.over) return;
+  let dt=Math.min(50,now-G.last); G.last=now; G.time+=dt;
+  const H=fieldEl.clientHeight;
+  // spawn
+  const sp=spawnParams();
+  if(G.idx<G.queue.length && (G.alive.length===0 || (now-G.lastSpawn>sp.iv && G.alive.length<4))){
+    G.alive.push(makeTile(G.queue[G.idx],G.idx)); G.idx++; G.lastSpawn=now;
+    markActive(); updateConsole();
+  }
+  // fall
+  for(const t of [...G.alive]){
+    t.y += H/sp.dur*dt;
+    t.div.style.transform=`translate(${t.x}px,${t.y}px)`;
+    t.div.style.setProperty('--tx',t.x+'px'); t.div.style.setProperty('--ty',t.y+'px');
+    if(!t.revealed && t.y > H*.55) reveal(t);   // 終盤は自動でヒント
+    if(t.y > H-70){
+      // floor hit
+      G.alive.splice(G.alive.indexOf(t),1);
+      explode(t.x+60,H-60,'#ff3b5c');
+      t.div.remove(); sndFall();
+      G.lives--; G.combo=0; G.buf=''; addReview(t);
+      G.cleared++;
+      updateHUD(); markActive(); updateConsole();
+      if(G.lives<=0){ endGame(false); return; }
+    }
+  }
+  // all done?
+  if(G.idx>=G.queue.length && G.alive.length===0){ endGame(true); return; }
+  updateHUD();
+  G.raf=requestAnimationFrame(loop);
+}
+function markActive(){
+  G.alive.forEach((t,i)=>t.div.classList.toggle('active',i===0));
+}
+function addReview(t){
+  const els=t.q.kind==='goro'?t.q.els:[t.q.el];
+  for(const e of els) G.review.set(e.n,e);
+}
+function destroy(t){
+  G.alive.splice(G.alive.indexOf(t),1);
+  const rect=t.div.getBoundingClientRect(), frect=fieldEl.getBoundingClientRect();
+  const cx=rect.left-frect.left+rect.width/2, cy=rect.top-frect.top+rect.height/2;
+  const perfect=!t.missed;
+  let pts=(t.q.kind==='goro'?150:100)+G.combo*5;
+  if(perfect) pts=Math.round(pts*1.5);
+  G.score+=pts; G.combo++; G.maxCombo=Math.max(G.maxCombo,G.combo);
+  G.cleared++;
+  if(t.missed) addReview(t);
+  explode(cx,cy,getComputedStyle(t.div).getPropertyValue('--cat')||'#ffd43b',pts);
+  t.div.remove(); sndKill();
+  $('comboV').classList.remove('hot'); void $('comboV').offsetWidth; $('comboV').classList.add('hot');
+  markActive(); updateHUD(); updateConsole();
+}
+function endGame(cleared){
+  G.over=true; cancelAnimationFrame(G.raf);
+  for(const t of G.alive) t.div.remove();
+  G.alive=[];
+  $('consQ').textContent=cleared?'ALL CLEAR!':'GAME OVER';
+  $('consType').innerHTML=''; $('consHint').textContent='';
+  const acc=G.ok+G.ng?Math.round(G.ok/(G.ok+G.ng)*100):100;
+  const sec=Math.round(G.time/1000);
+  $('rScore').textContent=G.score;
+  $('rAcc').textContent=acc+'%';
+  $('rCombo').textContent=G.maxCombo;
+  $('rTime').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+  let rank,title,fail=false;
+  if(!cleared){rank='C';title='GAME OVER…';fail=true;}
+  else if(acc>=97&&G.review.size===0&&G.lives===G.maxLives){rank='S';title='PERFECT! 元素マスター!!';}
+  else if(acc>=92&&G.lives>=G.maxLives-1){rank='A';title='MISSION COMPLETE!';}
+  else{rank='B';title='CLEAR! その調子!';}
+  $('resRank').textContent=rank;
+  const rt=$('resTitle'); rt.textContent=title; rt.classList.toggle('fail',fail);
+  const list=$('reviewList'); list.innerHTML='';
+  if(G.review.size===0){ $('reviewWrap').style.display='none'; }
+  else{
+    $('reviewWrap').style.display='block';
+    [...G.review.values()].sort((a,b)=>a.n-b.n).forEach(e=>{
+      const c=document.createElement('span'); c.className='rchip';
+      c.innerHTML=`<b>${e.s}</b>${e.name}（${e.kana}）`; list.appendChild(c);
+    });
+  }
+  if(cleared){tone(523,.12);setTimeout(()=>tone(659,.12),130);setTimeout(()=>tone(784,.12),260);setTimeout(()=>tone(1047,.3),390);}
+  else sndFall();
+  showScreen('result');
+}
+
+/* ---- screens ---- */
+function showScreen(id){
+  for(const s of ['menu','game','result']) $(s).classList.toggle('show',s===id||id==='result'&&s==='game');
+  // result はゲーム画面の上に重ねる
+  $('result').classList.toggle('show',id==='result');
+}
+
+/* ---- input ---- */
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if($('result').classList.contains('show')){
+    if(e.key==='Enter'){startGame();}
+    else if(e.key==='Escape'){showScreen('menu');}
+    return;
+  }
+  if(!$('game').classList.contains('show')||!G||G.over) {
+    if($('menu').classList.contains('show')&&e.key==='Enter') startGame();
+    return;
+  }
+  if(e.key==='Escape'){ quitToMenu(); return; }
+  if(e.key==='Backspace'){
+    e.preventDefault();
+    if(G.buf){ G.buf=G.buf.slice(0,-1); updateConsole(); }
+    return;
+  }
+  if(e.key==='Enter'){ e.preventDefault(); submitAnswer(); return; }
+  let k=e.key;
+  if(k.length!==1) return;
+  k=k.toLowerCase();
+  if(!/^[a-z\-]$/.test(k)) return;
+  e.preventDefault();
+  if(G.buf.length<40){ G.buf+=k; sndType(); updateConsole(); }
+});
+function submitAnswer(){
+  const t=G.alive[0]; if(!t||!G.buf) return;
+  if(checkAnswer(t,G.buf)){
+    G.ok++; G.buf='';
+    destroy(t);
+  }else{
+    G.ng++; G.combo=0; G.buf=''; sndMiss();
+    reveal(t);
+    t.div.classList.remove('shake'); void t.div.offsetWidth; t.div.classList.add('shake');
+    updateHUD(); updateConsole();
+  }
+}
+function quitToMenu(){
+  if(G){G.over=true; cancelAnimationFrame(G.raf);}
+  showScreen('menu');
+}
+$('startBtn').addEventListener('click',startGame);
+$('retryBtn').addEventListener('click',startGame);
+$('menuBtn').addEventListener('click',()=>{showScreen('menu');});
+$('quitBtn').addEventListener('click',quitToMenu);
+$('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent=muted?'🔇 消音':'🔊 音';});
+</script>
+</body>
+</html>
