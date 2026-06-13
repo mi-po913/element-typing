@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>ELEMENT TYPING — 元素記号タイピング</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@ body{
     var(--bg0);
   color:var(--txt);
   font-family:'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
-  overflow:hidden; user-select:none;
+  overflow:hidden; user-select:none; touch-action:manipulation;
 }
 body::before{
   content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
@@ -118,9 +118,9 @@ body::before{
 #hudProg{flex:1}
 #progBar{height:5px; border-radius:99px; background:rgba(120,160,255,.15); overflow:hidden; margin-top:5px}
 #progFill{height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--cyan),var(--mag)); transition:width .3s}
-#quitBtn,#muteBtn{background:rgba(20,30,56,.8); color:var(--dim); border:1px solid var(--line);
+#quitBtn,#muteBtn,#oskBtn{background:rgba(20,30,56,.8); color:var(--dim); border:1px solid var(--line);
   border-radius:9px; padding:7px 14px; cursor:pointer; font-size:12px; font-family:inherit}
-#quitBtn:hover,#muteBtn:hover{color:var(--txt); border-color:rgba(140,180,255,.5)}
+#quitBtn:hover,#muteBtn:hover,#oskBtn:hover{color:var(--txt); border-color:rgba(140,180,255,.5)}
 
 #field{position:relative; flex:1; width:100%; overflow:hidden}
 #floorline{position:absolute; left:0; right:0; bottom:0; height:3px;
@@ -187,6 +187,20 @@ body::before{
 #consType .qq{color:#3d4c72; letter-spacing:.12em; font-size:14px; font-family:'Zen Kaku Gothic New',sans-serif}
 #consHint{font-size:12px; color:var(--yel); min-height:17px; margin-top:2px}
 
+/* ===== ON-SCREEN KEYBOARD (スマホ用) ===== */
+#osk{display:none; max-width:540px; margin:10px auto 0;
+  user-select:none; -webkit-user-select:none}
+body.osk #osk{display:block}
+.osk-row{display:flex; justify-content:center; gap:5px; margin-bottom:6px}
+.osk-key{flex:1; max-width:48px; height:44px; border-radius:8px; border:1px solid var(--line);
+  background:rgba(30,44,80,.88); color:var(--txt); font-family:'Orbitron','Zen Kaku Gothic New';
+  font-size:16px; font-weight:700; padding:0;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  touch-action:manipulation; transition:background .08s,color .08s}
+.osk-key:active{background:var(--cyan); color:#04293e; border-color:var(--cyan)}
+.osk-key.wide{max-width:86px; flex:1.8; font-size:13px; font-family:'Zen Kaku Gothic New'}
+.osk-key.enter{background:rgba(77,214,255,.22); border-color:rgba(77,214,255,.6); color:var(--cyan)}
+
 /* ===== RESULT ===== */
 #result{justify-content:center; background:rgba(5,8,16,.7); backdrop-filter:blur(6px); z-index:10}
 #resCard{width:min(640px,94vw); text-align:center; padding:34px 34px 30px}
@@ -216,9 +230,24 @@ body::before{
   font-family:'Orbitron'; font-weight:900; font-size:110px; color:#fff; pointer-events:none;
   text-shadow:0 0 40px var(--cyan)}
 @media (max-width:680px){
-  .tile{width:106px} .tile .tmain{font-size:28px} .tile.goro{width:178px}
+  .tile{width:100px; padding:7px 8px 8px} .tile .tmain{font-size:25px}
+  .tile .tmain.jp{font-size:18px} .tile.goro{width:170px}
+  .tile .tgoro{font-size:17px} .tile .tsub{font-size:10.5px}
   .stats{grid-template-columns:repeat(2,1fr)}
-  #hud{gap:12px; padding:10px 12px; flex-wrap:wrap}
+  #hud{gap:8px 10px; padding:8px 10px; flex-wrap:wrap}
+  #hudProg{flex-basis:38%}
+  .hud-item .val{font-size:15px} #hudScore .val{min-width:54px}
+  .hud-item .lbl{font-size:8px}
+  #hudLives .val{font-size:14px; letter-spacing:1px}
+  #quitBtn,#muteBtn,#oskBtn{padding:5px 8px; font-size:11px}
+  #console{padding:8px 8px calc(10px + env(safe-area-inset-bottom))}
+  #consBox{padding:9px 10px 10px}
+  #consQ{font-size:12px} #consQ b{font-size:13.5px}
+  #consType{font-size:20px; min-height:28px}
+  #consType .qq{font-size:12px}
+  #consHint{font-size:11px}
+  .osk-key{height:42px; font-size:15px}
+  #resRank{font-size:64px}
 }
 </style>
 </head>
@@ -309,7 +338,8 @@ body::before{
       落ちてくる元素の答えを打ち込んで <b>Enterで確定</b>して撃ち落とそう。<br>
       打ち間違いは <b>Backspaceで修正OK</b>（タイプミスは失敗にならないよ）。<br>
       間違った答えで確定すると<b>ヒントが表示</b>されてコンボがリセット。下のラインに着くとライフが減るよ。<br>
-      ⌨️ <b>IMEはOFF（半角英数）</b>でプレイしてね ／ ESCで中断
+      ⌨️ PCは<b>IMEをOFF（半角英数）</b>にしてプレイ ／ ESCで中断<br>
+      📱 スマホは画面のキーボードでプレイできるよ（⌨️ボタンで表示切替）
     </p>
   </div>
 </div>
@@ -322,6 +352,7 @@ body::before{
     <div class="hud-item" id="hudLives"><span class="lbl">LIFE</span><span class="val" id="livesV">♥♥♥♥</span></div>
     <div class="hud-item" id="hudProg"><span class="lbl" id="progLbl">PROGRESS 0/20</span>
       <div id="progBar"><div id="progFill"></div></div></div>
+    <button id="oskBtn" title="画面キーボード切替">⌨️</button>
     <button id="muteBtn">🔊 音</button>
     <button id="quitBtn">ESC やめる</button>
   </div>
@@ -332,6 +363,7 @@ body::before{
       <div id="consType"><span class="caret"></span></div>
       <div id="consHint"></div>
     </div>
+    <div id="osk"></div>
   </div>
 </div>
 
@@ -572,6 +604,7 @@ const sndStart=()=>{tone(520,.09);setTimeout(()=>tone(660,.09),100);setTimeout((
 /* ================= GAME STATE ================= */
 const $=id=>document.getElementById(id);
 const fieldEl=$('field');
+const IS_TOUCH=matchMedia('(pointer:coarse)').matches;
 let mode='symbol', level='jhs', order='seq';
 let G=null;   // game state
 
@@ -763,7 +796,9 @@ function startGame(){
 function spawnParams(){
   const base={symbol:{dur:12000,iv:2300},kana:{dur:14000,iv:3300},goro:{dur:17000,iv:4000}}[mode];
   const accel=Math.max(.55,1-G.idx*.012);
-  return {dur:base.dur*accel, iv:base.iv*Math.max(.6,1-G.idx*.008)};
+  // タッチ端末は画面キーボード入力で遅くなるぶん、落下をゆるめる
+  const m=IS_TOUCH?1.55:1, mi=IS_TOUCH?1.35:1;
+  return {dur:base.dur*accel*m, iv:base.iv*Math.max(.6,1-G.idx*.008)*mi};
 }
 function loop(now){
   if(G.over) return;
@@ -872,19 +907,21 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if(e.key==='Escape'){ quitToMenu(); return; }
-  if(e.key==='Backspace'){
-    e.preventDefault();
-    if(G.buf){ G.buf=G.buf.slice(0,-1); updateConsole(); }
-    return;
-  }
+  if(e.key==='Backspace'){ e.preventDefault(); inputBackspace(); return; }
   if(e.key==='Enter'){ e.preventDefault(); submitAnswer(); return; }
   let k=e.key;
   if(k.length!==1) return;
   k=k.toLowerCase();
   if(!/^[a-z\-]$/.test(k)) return;
   e.preventDefault();
-  if(G.buf.length<40){ G.buf+=k; sndType(); updateConsole(); }
+  inputChar(k);
 });
+function inputChar(k){
+  if(G.buf.length<40){ G.buf+=k; sndType(); updateConsole(); }
+}
+function inputBackspace(){
+  if(G.buf){ G.buf=G.buf.slice(0,-1); updateConsole(); }
+}
 function submitAnswer(){
   const t=G.alive[0]; if(!t||!G.buf) return;
   if(checkAnswer(t,G.buf)){
@@ -906,6 +943,37 @@ $('retryBtn').addEventListener('click',startGame);
 $('menuBtn').addEventListener('click',()=>{showScreen('menu');});
 $('quitBtn').addEventListener('click',quitToMenu);
 $('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent=muted?'🔇 消音':'🔊 音';});
+
+/* ---- on-screen keyboard (スマホ用) ---- */
+function setOsk(on){ document.body.classList.toggle('osk',on); }
+setOsk(IS_TOUCH);
+$('oskBtn').addEventListener('click',()=>setOsk(!document.body.classList.contains('osk')));
+(function buildOsk(){
+  const rows=[
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l','-'],
+    ['BS','z','x','c','v','b','n','m','GO'],
+  ];
+  const osk=$('osk');
+  for(const r of rows){
+    const row=document.createElement('div'); row.className='osk-row';
+    for(const k of r){
+      const b=document.createElement('button'); b.type='button'; b.className='osk-key';
+      if(k==='BS'){ b.classList.add('wide'); b.textContent='⌫'; }
+      else if(k==='GO'){ b.classList.add('wide','enter'); b.textContent='⏎ 確定'; }
+      else b.textContent=k;
+      b.addEventListener('pointerdown',e=>{
+        e.preventDefault();
+        if(!$('game').classList.contains('show')||$('result').classList.contains('show')||!G||G.over) return;
+        if(k==='BS') inputBackspace();
+        else if(k==='GO') submitAnswer();
+        else inputChar(k);
+      });
+      row.appendChild(b);
+    }
+    osk.appendChild(row);
+  }
+})();
 </script>
 </body>
 </html>
