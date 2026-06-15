@@ -801,9 +801,9 @@ function updateConsole(){
   $('consType').innerHTML = G.buf
     ? `<span class="ok">${G.buf}</span><span class="caret"></span>`
     : `<span class="caret"></span><span class="qq">タイプして Enter で確定</span>`;
-  // 読みモード: 入力ローマ字をライブでカタカナ表示（タイプミスに気づきやすく）
+  // 読みモード・語呂モード: 入力ローマ字をライブでカタカナ表示（タイプミスに気づきやすく）
   const kanaEl=$('consKana');
-  if(t.q.kind==='kana'){
+  if(t.q.kind==='kana'||t.q.kind==='goro'){
     kanaEl.style.display='block';
     if(G.buf){
       const {kana,pending}=romajiToKana(G.buf);
