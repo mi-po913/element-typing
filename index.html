@@ -185,6 +185,11 @@ body::before{
 #consType .caret{display:inline-block; width:3px; height:24px; background:var(--cyan); vertical-align:-3px;
   margin:0 2px; animation:blink .9s steps(2) infinite}
 #consType .qq{color:#3d4c72; letter-spacing:.12em; font-size:14px; font-family:'Zen Kaku Gothic New',sans-serif}
+#consKana{display:none; min-height:30px; margin-top:2px; font-family:'Zen Kaku Gothic New',sans-serif;
+  font-weight:900; font-size:26px; letter-spacing:.08em}
+#consKana .kk{color:var(--grn); text-shadow:0 0 12px rgba(81,255,168,.45)}
+#consKana .pend{color:#5b6b94}
+#consKana .kkph{color:#3d4c72; font-weight:700; font-size:15px; letter-spacing:.12em}
 #consHint{font-size:12px; color:var(--yel); min-height:17px; margin-top:2px}
 
 /* ===== ON-SCREEN KEYBOARD (スマホ用) ===== */
@@ -245,6 +250,7 @@ body.osk #osk{display:block}
   #consQ{font-size:12px} #consQ b{font-size:13.5px}
   #consType{font-size:20px; min-height:28px}
   #consType .qq{font-size:12px}
+  #consKana{font-size:21px; min-height:25px}
   #consHint{font-size:11px}
   .osk-key{height:42px; font-size:15px}
   #resRank{font-size:64px}
@@ -361,6 +367,7 @@ body.osk #osk{display:block}
     <div id="consBox">
       <div id="consQ">READY...</div>
       <div id="consType"><span class="caret"></span></div>
+      <div id="consKana"></div>
       <div id="consHint"></div>
     </div>
     <div id="osk"></div>
@@ -501,6 +508,44 @@ const KMAP={
 };
 const SMALL='ゃゅょぁぃぅぇぉ';
 const VOWELS='aiueo';
+
+/* ローマ字 → かな の逆引き（入力中のライブ変換用） */
+const R2K=(()=>{
+  const m={};
+  for(const kana in KMAP) for(const r of KMAP[kana]) if(!(r in m)) m[r]=kana;
+  return m;
+})();
+function toKatakana(s){
+  let o='';
+  for(const ch of s){ const c=ch.charCodeAt(0);
+    o += (c>=0x3041 && c<=0x3096) ? String.fromCharCode(c+0x60) : ch; }
+  return o;
+}
+// 入力バッファのローマ字をかなに変換。{kana, pending(未確定の余り)} を返す
+function romajiToKana(buf){
+  let res='', i=0; const L=buf.length;
+  while(i<L){
+    const c=buf[i];
+    // 促音（子音重ね）: tta → った
+    if(c!=='n' && !VOWELS.includes(c) && c!=='-' && buf[i+1]===c){ res+='っ'; i++; continue; }
+    // 撥音 ん
+    if(c==='n'){
+      const n1=buf[i+1];
+      if(n1==='n'){ res+='ん'; i+=2; continue; }
+      if(n1===undefined) break;                 // 'n' 単体は未確定
+      if(!'aiueoy'.includes(n1)){ res+='ん'; i++; continue; }
+      // 母音/y が続くなら な行・にゃ等として下のマップに任せる
+    }
+    let matched=false;
+    for(let len=Math.min(3,L-i); len>=1; len--){
+      const seg=buf.slice(i,i+len);
+      if(R2K[seg]){ res+=R2K[seg]; i+=len; matched=true; break; }
+    }
+    if(matched) continue;
+    break;                                       // これ以上かなにできない＝未確定
+  }
+  return {kana:toKatakana(res), pending:buf.slice(i)};
+}
 
 function tokenize(kana){
   const toks=[]; let i=0;
@@ -756,6 +801,17 @@ function updateConsole(){
   $('consType').innerHTML = G.buf
     ? `<span class="ok">${G.buf}</span><span class="caret"></span>`
     : `<span class="caret"></span><span class="qq">タイプして Enter で確定</span>`;
+  // 読みモード: 入力ローマ字をライブでカタカナ表示（タイプミスに気づきやすく）
+  const kanaEl=$('consKana');
+  if(t.q.kind==='kana'){
+    kanaEl.style.display='block';
+    if(G.buf){
+      const {kana,pending}=romajiToKana(G.buf);
+      kanaEl.innerHTML=`<span class="kk">${kana}</span>`+(pending?`<span class="pend">${pending}</span>`:'');
+    }else{
+      kanaEl.innerHTML='<span class="kkph">カタカナで確認</span>';
+    }
+  }else kanaEl.style.display='none';
   let hint='';
   if(t.q.kind==='goro') hint=`入力例: ${guideFor(t)}`;
   else if(t.revealed) hint = t.q.kind==='symbol'
